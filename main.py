@@ -1,11 +1,10 @@
 from fastapi import FastAPI
+from app.routers import study
 
 app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Hello, World!"}
+    return {"message": "FastAPI + MariaDB 연결 테스트 서버"}
 
-@app.get("/ping")
-def ping():
-    return {"message": "pong"}
+app.include_router(study.router)
