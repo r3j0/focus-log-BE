@@ -24,10 +24,20 @@ jobs:
             name: focus-log-be
             app: python@3.10
             options:
-              env: []
+              env:
+                - name: DB_HOST
+                  value: focus-log-db
+                - name: DB_PORT
+                  secret: DB_PORT
+                - name: DB_USER
+                  secret: DB_USER
+                - name: DB_PASSWORD
+                  secret: DB_PASSWORD
+                - name: DB_NAME
+                  secret: DB_NAME
               ports: 8000
               start: uvicorn main:app --host=0.0.0.0 --port=8000
-              install: pip install "fastapi[standard]"
+              install: pip install -r requirements.txt
               buildenv: []
             context:
               git:
