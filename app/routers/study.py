@@ -14,6 +14,9 @@ def start_study(request: StudyUserRequest):
         conn = get_connection()
 
         with conn.cursor() as cursor:
+            # Trouble Shooting : UTC Time zone Set
+            cursor.execute("SET time_zone = '+09:00'")
+
             cursor.execute(
                 "SELECT id, nickname FROM users WHERE id = %s",
                 (request.user_id,)
