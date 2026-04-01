@@ -39,7 +39,8 @@ def start_study(request: StudyUserRequest):
             if active_session:
                 raise HTTPException(status_code=400, detail="이미 공부 중인 세션이 존재합니다.")
 
-            now = datetime.now(ZoneInfo("Asia/Seoul"))
+            kst = ZoneInfo("Asia/Seoul")
+            now = datetime.now(kst)
 
             cursor.execute(
                 """
@@ -106,7 +107,8 @@ def stop_study(request: StudyUserRequest):
             if not active_session:
                 raise HTTPException(status_code=400, detail="현재 종료할 공부 세션이 없습니다.")
 
-            now = datetime.now(ZoneInfo("Asia/Seoul"))
+            kst = ZoneInfo("Asia/Seoul")
+            now = datetime.now(kst)
             started_at = active_session["started_at"]
             if started_at.tzinfo is None:
                 started_at = started_at.replace(tzinfo=kst)
