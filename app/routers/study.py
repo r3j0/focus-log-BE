@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from app.database import get_connection
 from app.schemas import StudyUserRequest
@@ -14,9 +15,6 @@ def start_study(request: StudyUserRequest):
         conn = get_connection()
 
         with conn.cursor() as cursor:
-            # Trouble Shooting : UTC Time zone Set
-            cursor.execute("SET time_zone = '+09:00'")
-
             cursor.execute(
                 "SELECT id, nickname FROM users WHERE id = %s",
                 (request.user_id,)
@@ -41,7 +39,7 @@ def start_study(request: StudyUserRequest):
             if active_session:
                 raise HTTPException(status_code=400, detail="이미 공부 중인 세션이 존재합니다.")
 
-            now = datetime.now()
+            now = datetime.now(ZoneInfo("Asia/Seoul"))
 
             cursor.execute(
                 """
@@ -108,7 +106,7 @@ def stop_study(request: StudyUserRequest):
             if not active_session:
                 raise HTTPException(status_code=400, detail="현재 종료할 공부 세션이 없습니다.")
 
-            now = datetime.now()
+            now = datetime.now(ZoneInfo("Asia/Seoul"))
             started_at = active_session["started_at"]
             duration_seconds = int((now - started_at).total_seconds())
 
