@@ -108,6 +108,8 @@ def stop_study(request: StudyUserRequest):
 
             now = datetime.now(ZoneInfo("Asia/Seoul"))
             started_at = active_session["started_at"]
+            if started_at.tzinfo is None:
+                started_at = started_at.replace(tzinfo=kst)
             duration_seconds = int((now - started_at).total_seconds())
 
             if duration_seconds < 0:
