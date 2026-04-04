@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 from dotenv import load_dotenv
+from fastapi import Header, HTTPException
 
 load_dotenv()
 
@@ -135,3 +136,22 @@ def decode_token(token: str, expected_type: str) -> dict:
         raise AuthTokenError("토큰의 사용자 정보가 없습니다.")
 
     return payload
+
+
+def get_current_user_id(authorization: str | None = Header(default=None)) -> int:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization 헤더가 필요합니다.")
+
+    scheme, _, raw_token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not raw_token:
+        raise HTTPException(status_code=401, detail="Bearer access token 형식이 올바르지 않습니다.")
+
+    try:
+        payload = decode_token(raw_token, expected_type="access")
+    except AuthTokenError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+    try:
+        return int(payload["sub"])
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="토큰의 사용자 정보가 올바르지 않습니다.")
