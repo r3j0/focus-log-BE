@@ -1,16 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timedelta, date
 from zoneinfo import ZoneInfo
+from pydantic import BaseModel
 
 from app.auth_utils import get_current_user_id
 from app.database import get_connection
-from app.schemas import UserRecordRequest
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+
+class UserRecordRequestBody(BaseModel):
+    date: str | None = None
+
+
 @router.post("/record")
 def user_record(
-    request: UserRecordRequest,
+    request: UserRecordRequestBody,
     current_user_id: int = Depends(get_current_user_id),
 ):
     conn = None
