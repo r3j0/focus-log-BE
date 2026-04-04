@@ -4,14 +4,12 @@ from zoneinfo import ZoneInfo
 
 from app.auth_utils import get_current_user_id
 from app.database import get_connection
-from app.schemas import StudyUserRequest
 
 router = APIRouter(prefix="/study", tags=["study"])
 
 
 @router.post("/start")
 def start_study(
-    request: StudyUserRequest,
     current_user_id: int = Depends(get_current_user_id),
 ):
     conn = None
@@ -82,7 +80,6 @@ def start_study(
 
 @router.post("/stop")
 def stop_study(
-    request: StudyUserRequest,
     current_user_id: int = Depends(get_current_user_id),
 ):
     conn = None
