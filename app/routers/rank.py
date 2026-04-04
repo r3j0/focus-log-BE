@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.auth_utils import get_current_user_id
 from app.database import get_connection
 from app.schemas import RankRange, RankResponse
 
@@ -44,6 +45,7 @@ def get_rank(
         ...,
         description="조회 기간 (today/week/month)",
     ),
+    _current_user_id: int = Depends(get_current_user_id),
 ):
     conn = None
     try:
