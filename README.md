@@ -19,12 +19,16 @@ focus-log-BE/
 ├── .env
 ├── requirements.txt
 ├── main.py
+├── migrations/
+│   └── 20260404_b06_auth.sql
 └── app/
     ├── __init__.py
+    ├── auth_utils.py
     ├── database.py
     ├── schemas.py
     └── routers/
         ├── __init__.py
+        ├── auth.py
         ├── study.py
         ├── user.py
         └── rank.py
@@ -55,6 +59,10 @@ DB_PORT=3306
 DB_USER=your_user
 DB_PASSWORD=your_password
 DB_NAME=your_db_name
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=14
 ```
 
 ### 4. Run server
@@ -73,7 +81,49 @@ http://127.0.0.1:8000/docs
 
 ## API Endpoints
 
-### 1) Study start
+### 1) Auth signup
+- `POST /auth/signup`
+- Request body:
+
+```json
+{
+  "nickname": "user_nickname",
+  "password": "user_password"
+}
+```
+
+### 2) Auth login
+- `POST /auth/login`
+- Request body:
+
+```json
+{
+  "nickname": "user_nickname",
+  "password": "user_password"
+}
+```
+
+### 3) Auth refresh
+- `POST /auth/refresh`
+- Request body:
+
+```json
+{
+  "refresh_token": "..."
+}
+```
+
+### 4) Auth logout
+- `POST /auth/logout`
+- Request body:
+
+```json
+{
+  "refresh_token": "..."
+}
+```
+
+### 5) Study start
 - `POST /study/start`
 - Request body:
 
@@ -83,7 +133,7 @@ http://127.0.0.1:8000/docs
 }
 ```
 
-### 2) Study stop
+### 6) Study stop
 - `POST /study/stop`
 - Request body:
 
@@ -93,7 +143,7 @@ http://127.0.0.1:8000/docs
 }
 ```
 
-### 3) User daily record
+### 7) User daily record
 - `POST /user/record`
 - Request body (`date`는 선택):
 
@@ -104,7 +154,7 @@ http://127.0.0.1:8000/docs
 }
 ```
 
-### 4) Rank by period
+### 8) Rank by period
 - `GET /rank?range=today`
 - `GET /rank?range=week`
 - `GET /rank?range=month`
@@ -119,14 +169,3 @@ http://127.0.0.1:8000/docs
 랭킹 합계에는 다음이 포함됩니다.
 - 종료된 세션의 `duration_seconds`
 - 활성 세션의 진행 시간(`started_at`부터 조회 시점까지), 단 선택 기간 경계 이전 시작분은 기간 내 구간만 반영
-
----
-
-## Feature Status
-
-- [x] B-01 기초 베이스 애플리케이션 실행 및 빌드
-- [x] B-02 데이터베이스 연결
-- [x] B-03 공부 시작 및 종료 상태 저장
-- [x] B-04 유저 공부 기록 조회
-- [x] B-05 서버 랭킹 조회
-- [ ] B-06 닉네임 기반 로그인

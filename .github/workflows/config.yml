@@ -35,6 +35,14 @@ jobs:
                   secret: DB_PASSWORD
                 - name: DB_NAME
                   secret: DB_NAME
+                - name: JWT_ACCESS_SECRET
+                  secret: JWT_ACCESS_SECRET
+                - name: JWT_REFRESH_SECRET
+                  secret: JWT_REFRESH_SECRET
+                - name: ACCESS_TOKEN_EXPIRE_MINUTES
+                  value: "15"
+                - name: REFRESH_TOKEN_EXPIRE_DAYS
+                  value: "14"
               ports: 8000
               start: uvicorn main:app --host=0.0.0.0 --port=8000
               install: pip install -r requirements.txt

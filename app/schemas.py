@@ -25,3 +25,28 @@ class RankItem(BaseModel):
 class RankResponse(BaseModel):
     range: RankRange
     ranks: list[RankItem]
+
+
+class AuthCredentialRequest(BaseModel):
+    nickname: str
+    password: str
+
+
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class AuthTokenResponse(BaseModel):
+    user_id: int
+    nickname: str
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    access_expires_in: int
+
+
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    access_expires_in: int

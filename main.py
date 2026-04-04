@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import rank, study, user
+from app.routers import auth, rank, study, user
 
 app = FastAPI()
 
@@ -10,3 +10,4 @@ def root():
 app.include_router(study.router)
 app.include_router(user.router)
 app.include_router(rank.router)
+app.include_router(auth.router)
