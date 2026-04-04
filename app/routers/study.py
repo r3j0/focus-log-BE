@@ -1,15 +1,17 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from app.auth_utils import get_current_user_id
 from app.database import get_connection
-from app.schemas import StudyUserRequest
 
 router = APIRouter(prefix="/study", tags=["study"])
 
 
 @router.post("/start")
-def start_study(request: StudyUserRequest):
+def start_study(
+    current_user_id: int = Depends(get_current_user_id),
+):
     conn = None
     try:
         conn = get_connection()
@@ -17,7 +19,7 @@ def start_study(request: StudyUserRequest):
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, nickname FROM users WHERE id = %s",
-                (request.user_id,)
+                (current_user_id,)
             )
             user = cursor.fetchone()
 
@@ -32,7 +34,7 @@ def start_study(request: StudyUserRequest):
                 ORDER BY started_at DESC
                 LIMIT 1
                 """,
-                (request.user_id,)
+                (current_user_id,)
             )
             active_session = cursor.fetchone()
 
@@ -47,7 +49,7 @@ def start_study(request: StudyUserRequest):
                 INSERT INTO study_sessions (user_id, started_at)
                 VALUES (%s, %s)
                 """,
-                (request.user_id, now)
+                (current_user_id, now)
             )
 
             session_id = cursor.lastrowid
@@ -77,7 +79,9 @@ def start_study(request: StudyUserRequest):
 
 
 @router.post("/stop")
-def stop_study(request: StudyUserRequest):
+def stop_study(
+    current_user_id: int = Depends(get_current_user_id),
+):
     conn = None
     try:
         conn = get_connection()
@@ -85,7 +89,7 @@ def stop_study(request: StudyUserRequest):
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT id, nickname FROM users WHERE id = %s",
-                (request.user_id,)
+                (current_user_id,)
             )
             user = cursor.fetchone()
 
@@ -100,7 +104,7 @@ def stop_study(request: StudyUserRequest):
                 ORDER BY started_at DESC
                 LIMIT 1
                 """,
-                (request.user_id,)
+                (current_user_id,)
             )
             active_session = cursor.fetchone()
 

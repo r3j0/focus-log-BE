@@ -19,12 +19,16 @@ focus-log-BE/
 ├── .env
 ├── requirements.txt
 ├── main.py
+├── migrations/
+│   └── 20260404_b06_auth.sql
 └── app/
     ├── __init__.py
+    ├── auth_utils.py
     ├── database.py
     ├── schemas.py
     └── routers/
         ├── __init__.py
+        ├── auth.py
         ├── study.py
         ├── user.py
         └── rank.py
@@ -55,6 +59,10 @@ DB_PORT=3306
 DB_USER=your_user
 DB_PASSWORD=your_password
 DB_NAME=your_db_name
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=14
 ```
 
 ### 4. Run server
@@ -73,38 +81,83 @@ http://127.0.0.1:8000/docs
 
 ## API Endpoints
 
-### 1) Study start
+### Auth (Public)
+
+#### 1) Auth signup
+- `POST /auth/signup`
+- Request body:
+
+```json
+{
+  "nickname": "user_nickname",
+  "password": "user_password"
+}
+```
+
+#### 2) Auth login
+- `POST /auth/login`
+- Request body:
+
+```json
+{
+  "nickname": "user_nickname",
+  "password": "user_password"
+}
+```
+
+#### 3) Auth refresh
+- `POST /auth/refresh`
+- Request body:
+
+```json
+{
+  "refresh_token": "..."
+}
+```
+
+#### 4) Auth logout
+- `POST /auth/logout`
+- Request body:
+
+```json
+{
+  "refresh_token": "..."
+}
+```
+
+---
+
+### Protected APIs (Access Token Required)
+
+아래 API는 모두 `Authorization: Bearer <access_token>` 헤더가 필요합니다.
+
+- Swagger(` /docs `) 사용 시:
+  1. 우측 상단 `Authorize` 클릭
+  2. `Bearer <access_token>` 입력
+  3. `Authorize` 적용 후 요청 실행
+
+#### 5) Study start
 - `POST /study/start`
-- Request body:
+- Request body 없음
+- 토큰의 `sub` 사용자로 시작 세션 생성
 
-```json
-{
-  "user_id": 1
-}
-```
-
-### 2) Study stop
+#### 6) Study stop
 - `POST /study/stop`
-- Request body:
+- Request body 없음
+- 토큰의 `sub` 사용자의 활성 세션 종료
 
-```json
-{
-  "user_id": 1
-}
-```
-
-### 3) User daily record
+#### 7) User daily record
 - `POST /user/record`
 - Request body (`date`는 선택):
 
 ```json
 {
-  "user_id": 1,
   "date": "2026-04-03"
 }
 ```
+- `user_id`는 요청 바디로 받지 않으며, 토큰 사용자 기준으로 조회
 
-### 4) Rank by period
+#### 8) Rank by period
 - `GET /rank?range=today`
 - `GET /rank?range=week`
 - `GET /rank?range=month`
@@ -122,11 +175,17 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## Feature Status
+## DB Migration
 
-- [x] B-01 기초 베이스 애플리케이션 실행 및 빌드
-- [x] B-02 데이터베이스 연결
-- [x] B-03 공부 시작 및 종료 상태 저장
-- [x] B-04 유저 공부 기록 조회
-- [x] B-05 서버 랭킹 조회
-- [ ] B-06 닉네임 기반 로그인
+인증 기능(B-06)을 사용하려면 DB 마이그레이션을 먼저 적용해야 합니다.
+
+```sql
+SOURCE migrations/20260404_b06_auth.sql;
+```
+
+핵심 변경 사항:
+- `users.password_hash` 추가
+- `users.nickname` 유니크 제약
+- `refresh_tokens` 테이블 추가
+
+> 참고: 운영 환경에서는 `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`를 반드시 설정하세요.

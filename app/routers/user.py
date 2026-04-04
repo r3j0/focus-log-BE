@@ -1,14 +1,23 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timedelta, date
 from zoneinfo import ZoneInfo
+from pydantic import BaseModel
 
+from app.auth_utils import get_current_user_id
 from app.database import get_connection
-from app.schemas import UserRecordRequest
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+
+class UserRecordRequestBody(BaseModel):
+    date: str | None = None
+
+
 @router.post("/record")
-def user_record(request: UserRecordRequest):
+def user_record(
+    request: UserRecordRequestBody,
+    current_user_id: int = Depends(get_current_user_id),
+):
     conn = None
     try:
         conn = get_connection()
@@ -17,7 +26,7 @@ def user_record(request: UserRecordRequest):
             # 1) user 존재 확인
             cursor.execute(
                 "SELECT id, nickname FROM users WHERE id = %s",
-                (request.user_id,)
+                (current_user_id,)
             )
             user = cursor.fetchone()
 
@@ -56,7 +65,7 @@ def user_record(request: UserRecordRequest):
                   AND started_at < %s
                 ORDER BY started_at DESC
                 """,
-                (request.user_id, day_start_naive, next_day_start_naive)
+                (current_user_id, day_start_naive, next_day_start_naive)
             )
             sessions = cursor.fetchall()
 
