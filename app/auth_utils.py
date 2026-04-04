@@ -6,13 +6,15 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 from dotenv import load_dotenv
-from fastapi import Header, HTTPException
+from fastapi import HTTPException, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 load_dotenv()
 
 ALGORITHM = "HS256"
 DEFAULT_ACCESS_SECRET = "dev-access-secret-change-this-to-env-value-1234567890"
 DEFAULT_REFRESH_SECRET = "dev-refresh-secret-change-this-to-env-value-1234567890"
+access_token_bearer = HTTPBearer(auto_error=False)
 
 
 class AuthTokenError(Exception):
@@ -138,12 +140,17 @@ def decode_token(token: str, expected_type: str) -> dict:
     return payload
 
 
-def get_current_user_id(authorization: str | None = Header(default=None)) -> int:
-    if not authorization:
+def get_current_user_id(
+    credentials: HTTPAuthorizationCredentials | None = Security(access_token_bearer),
+) -> int:
+    if not credentials:
         raise HTTPException(status_code=401, detail="Authorization 헤더가 필요합니다.")
 
-    scheme, _, raw_token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not raw_token:
+    if credentials.scheme.lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Bearer access token 형식이 올바르지 않습니다.")
+
+    raw_token = credentials.credentials.strip()
+    if not raw_token:
         raise HTTPException(status_code=401, detail="Bearer access token 형식이 올바르지 않습니다.")
 
     try:
